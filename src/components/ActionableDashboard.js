@@ -108,11 +108,7 @@ export default function ActionableDashboard() {
               <button
                 key={rec.id}
                 onClick={() => toggleRec(rec)}
-                className={`p-4 rounded-lg text-left font-medium transition ${
-                  activeRecs.includes(rec.id)
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
+                 
               >
                 {rec.text}
               </button>
