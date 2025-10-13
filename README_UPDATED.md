@@ -38,5 +38,3 @@ This project is a React-based esports analytics dashboard enhanced with **action
 - Review goal progress bars to track improvement.
 - Read actionable recommendations in the panel to improve gameplay.
 
----
-✅ Integrated by ChatGPT — includes analytics, goal tracking, and coaching insights.
