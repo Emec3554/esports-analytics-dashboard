@@ -145,6 +145,26 @@ export const getHeroStats = async () => {
     }
 };
 
+export const getPlayerHeroes = async (accountId) => {
+    try {
+        const response = await opendotaAPI.get(`players/${accountId}/heroes`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching player heroes:', error);
+        throw error;
+    }
+};
+
+export const getConstants = async (resource) => {
+    try {
+        const response = await opendotaAPI.get(`constants/${resource}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching ${resource} constants:`, error);
+        throw error;
+    }
+};
+
 // export const getPlayerData = async (accountId) => {
 //   try {
 //     // The OpenDota API returns player data directly, not nested under 'profile'

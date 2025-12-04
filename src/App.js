@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,6 +15,7 @@ import MatchProfile from './pages/MatchProfile';
 import Analytics from './pages/Analytics';
 import Favorites from './pages/Favorites';
 import Recommendations from './pages/Recommendations';
+import DynamicRecommendations from './pages/DynamicRecommendations';
 
 function App() {
   return (
@@ -124,17 +124,28 @@ function App() {
               }
             />
 
-            <Route 
-              path="/recommendations" 
+            <Route
+              path="/recommendations"
               element={
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Recommendations />
                   </DashboardLayout>
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
+            <Route
+              path="/recommendations/:accountId"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <DynamicRecommendations />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>

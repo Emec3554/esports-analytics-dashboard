@@ -187,6 +187,20 @@ const PlayerProfile = () => {
         </div>
       </div>
 
+      {/* AI Recommendations Button */}
+      <div className="recommendations-prompt">
+        <div className="prompt-content">
+          <div className="prompt-icon">🤖</div>
+          <div className="prompt-text">
+            <h3>Get AI-Powered Recommendations</h3>
+            <p>Analyze this player's performance and receive personalized improvement suggestions based on their recent matches.</p>
+          </div>
+        </div>
+        <Link to={`/recommendations/${accountId}`} className="recommendations-btn">
+          View Recommendations →
+        </Link>
+      </div>
+
       <div className="profile-tabs">
         <button 
           className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}

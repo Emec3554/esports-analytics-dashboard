@@ -91,37 +91,79 @@ export default function Recommendations() {
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Baseline */}
-          <div>
-            <h2 className="font-semibold mb-2">Baseline Performance</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="match" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="kills" fill="#d81a43ff" />
-                <Bar dataKey="deaths" fill="#000" />
-                <Bar dataKey="assists" fill="#0bc020" />
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4 text-center">Baseline Performance</h2>
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart data={data} barSize={30}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={1} />
+                <XAxis
+                  dataKey="match"
+                  stroke="#374151"
+                  style={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <YAxis
+                  stroke="#374151"
+                  style={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#fff'
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="square"
+                  iconSize={14}
+                />
+                <Bar dataKey="kills" fill="#e11d48" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="deaths" fill="#1f2937" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="assists" fill="#10b981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            <p className="text-center text-sm text-gray-600 italic mt-4">
+              Current performance across recent matches
+            </p>
           </div>
 
           {/* Adjusted */}
-          <div>
-            <h2 className="font-semibold mb-2">Recommendations Performance</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={adjustedData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="match" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="kills" fill="#e11d48" />
-                <Bar dataKey="deaths" fill="#000" />
-                <Bar dataKey="assists" fill="#0bc020" />
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4 text-center">With Recommendations Applied</h2>
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart data={adjustedData} barSize={30}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={1} />
+                <XAxis
+                  dataKey="match"
+                  stroke="#374151"
+                  style={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <YAxis
+                  stroke="#374151"
+                  style={{ fontSize: '12px', fontWeight: '600' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#fff'
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="square"
+                  iconSize={14}
+                />
+                <Bar dataKey="kills" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="deaths" fill="#1f2937" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="assists" fill="#22c55e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            <p className="text-center text-sm text-gray-600 italic mt-4">
+              Projected performance with applied recommendations
+            </p>
           </div>
         </div>
       </div>
