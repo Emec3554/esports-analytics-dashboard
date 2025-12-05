@@ -1,77 +1,74 @@
 /**
+ * Projection Calculator Utilities
+ * Handles all calculations for projected stats and chart data
+ */
+
+/**
  * Calculate projected stats based on applied recommendations
- * @param {Object} analytics - Current player analytics
- * @param {Array} appliedRecommendations - List of applied recommendation objects
- * @returns {Object} Projected stats after applying recommendations
  */
 export const calculateProjectedStats = (analytics, appliedRecommendations) => {
   if (!analytics || !appliedRecommendations || appliedRecommendations.length === 0) {
     return null;
   }
 
-  // Start with current stats
+  // Start with current stats - with safe defaults
   const projected = {
-    kda: { ...analytics.kda },
-    winRate: { ...analytics.winRate },
-    farm: analytics.farm ? { ...analytics.farm } : null,
-    teamfightImpact: analytics.teamfightImpact ? { ...analytics.teamfightImpact } : null
+    kda: {
+      avgKills: parseFloat(analytics.kda?.avgKills || 0),
+      avgDeaths: parseFloat(analytics.kda?.avgDeaths || 0),
+      avgAssists: parseFloat(analytics.kda?.avgAssists || 0),
+      kdaRatio: parseFloat(analytics.kda?.kdaRatio || 0)
+    },
+    winRate: {
+      winRate: parseFloat(analytics.winRate?.winRate || 0),
+      wins: analytics.winRate?.wins || 0,
+      losses: analytics.winRate?.losses || 0
+    },
+    farm: analytics.farm ? {
+      avgGPM: parseFloat(analytics.farm.avgGPM || 0),
+      avgLastHits: parseFloat(analytics.farm.avgLastHits || 0)
+    } : null
   };
 
-  // Apply each recommendation's impact
+  // Apply each recommendation's expected impact
   appliedRecommendations.forEach(rec => {
     if (!rec.expectedImpact) return;
 
     const impact = rec.expectedImpact;
 
-    // Apply KDA changes
-    if (impact.kills) {
-      projected.kda.avgKills = (parseFloat(projected.kda.avgKills) + impact.kills).toFixed(1);
-    }
-    if (impact.deaths) {
-      projected.kda.avgDeaths = Math.max(0, parseFloat(projected.kda.avgDeaths) + impact.deaths).toFixed(1);
-    }
-    if (impact.assists) {
-      projected.kda.avgAssists = (parseFloat(projected.kda.avgAssists) + impact.assists).toFixed(1);
-    }
-    if (impact.kdaRatio) {
-      projected.kda.kdaRatio = (parseFloat(projected.kda.kdaRatio) + impact.kdaRatio).toFixed(2);
+    // Apply KDA impacts
+    if (impact.kills) projected.kda.avgKills += impact.kills;
+    if (impact.deaths) projected.kda.avgDeaths += impact.deaths; // Usually negative
+    if (impact.assists) projected.kda.avgAssists += impact.assists;
+
+    // Recalculate KDA ratio
+    if (projected.kda.avgDeaths > 0) {
+      projected.kda.kdaRatio = (projected.kda.avgKills + projected.kda.avgAssists) / projected.kda.avgDeaths;
     }
 
-    // Apply win rate changes
+    // Apply win rate impact
     if (impact.winRate) {
-      projected.winRate.winRate = Math.min(100, parseFloat(projected.winRate.winRate) + impact.winRate).toFixed(1);
+      projected.winRate.winRate += impact.winRate;
+      projected.winRate.winRate = Math.min(Math.max(projected.winRate.winRate, 0), 100);
     }
 
-    // Apply farm changes
+    // Apply farm impacts
     if (projected.farm) {
-      if (impact.gpm) {
-        projected.farm.avgGPM = Math.round(projected.farm.avgGPM + impact.gpm);
-      }
-      if (impact.lastHits) {
-        projected.farm.avgLastHits = Math.round(projected.farm.avgLastHits + impact.lastHits);
-      }
-      if (impact.netWorth) {
-        // Net worth is informational, not directly modified
-      }
-    }
-
-    // Apply teamfight impact changes
-    if (projected.teamfightImpact) {
-      if (impact.heroDamage) {
-        projected.teamfightImpact.avgHeroDamage = Math.round(
-          projected.teamfightImpact.avgHeroDamage + impact.heroDamage
-        );
-      }
+      if (impact.gpm) projected.farm.avgGPM += impact.gpm;
+      if (impact.lastHits) projected.farm.avgLastHits += impact.lastHits;
     }
   });
 
-  // Recalculate KDA ratio if deaths or kills/assists changed
-  const totalKillContribution = parseFloat(projected.kda.avgKills) + parseFloat(projected.kda.avgAssists);
-  const deaths = parseFloat(projected.kda.avgDeaths);
-  if (deaths > 0) {
-    projected.kda.kdaRatio = (totalKillContribution / deaths).toFixed(2);
-  } else {
-    projected.kda.kdaRatio = totalKillContribution.toFixed(2);
+  // Round values for display
+  projected.kda.avgKills = parseFloat(projected.kda.avgKills.toFixed(1));
+  projected.kda.avgDeaths = parseFloat(projected.kda.avgDeaths.toFixed(1));
+  projected.kda.avgAssists = parseFloat(projected.kda.avgAssists.toFixed(1));
+  projected.kda.kdaRatio = parseFloat(projected.kda.kdaRatio.toFixed(2));
+  projected.winRate.winRate = parseFloat(projected.winRate.winRate.toFixed(1));
+
+  if (projected.farm) {
+    projected.farm.avgGPM = Math.round(projected.farm.avgGPM);
+    projected.farm.avgLastHits = Math.round(projected.farm.avgLastHits);
   }
 
   return projected;
@@ -79,197 +76,158 @@ export const calculateProjectedStats = (analytics, appliedRecommendations) => {
 
 /**
  * Calculate improvement percentages
- * @param {Object} current - Current stats
- * @param {Object} projected - Projected stats
- * @returns {Object} Improvement percentages
  */
-export const calculateImprovementPercentages = (current, projected) => {
-  if (!current || !projected) return null;
+export const calculateImprovementPercentages = (analytics, projectedStats) => {
+  if (!analytics || !projectedStats) return null;
 
-  const improvements = {};
-
-  // KDA improvements
-  if (current.kda && projected.kda) {
-    improvements.kdaRatio = calculatePercentageChange(
-      parseFloat(current.kda.kdaRatio),
-      parseFloat(projected.kda.kdaRatio)
-    );
-    improvements.avgKills = calculatePercentageChange(
-      parseFloat(current.kda.avgKills),
-      parseFloat(projected.kda.avgKills)
-    );
-    improvements.avgDeaths = calculatePercentageChange(
-      parseFloat(current.kda.avgDeaths),
-      parseFloat(projected.kda.avgDeaths)
-    );
-    improvements.avgAssists = calculatePercentageChange(
-      parseFloat(current.kda.avgAssists),
-      parseFloat(projected.kda.avgAssists)
-    );
-  }
-
-  // Win rate improvement
-  if (current.winRate && projected.winRate) {
-    improvements.winRate = calculatePercentageChange(
-      parseFloat(current.winRate.winRate),
-      parseFloat(projected.winRate.winRate)
-    );
-  }
-
-  // Farm improvements
-  if (current.farm && projected.farm) {
-    improvements.avgGPM = calculatePercentageChange(
-      current.farm.avgGPM,
-      projected.farm.avgGPM
-    );
-    improvements.avgLastHits = calculatePercentageChange(
-      current.farm.avgLastHits,
-      projected.farm.avgLastHits
-    );
-  }
-
-  return improvements;
-};
-
-/**
- * Calculate percentage change between two values
- * @param {number} oldValue - Original value
- * @param {number} newValue - New value
- * @returns {string} Percentage change with sign
- */
-const calculatePercentageChange = (oldValue, newValue) => {
-  if (oldValue === 0) return newValue > 0 ? '+∞' : '0';
-  const change = ((newValue - oldValue) / oldValue) * 100;
-  return change.toFixed(1);
-};
-
-/**
- * Prepare data for comparison charts
- * @param {Object} analytics - Current analytics
- * @param {Object} projected - Projected analytics
- * @returns {Object} Chart-ready data
- */
-export const prepareChartData = (analytics, projected) => {
-  if (!analytics) return null;
-
-  const currentKDA = {
-    kills: parseFloat(analytics.kda.avgKills),
-    deaths: parseFloat(analytics.kda.avgDeaths),
-    assists: parseFloat(analytics.kda.avgAssists),
-    kdaRatio: parseFloat(analytics.kda.kdaRatio)
+  const calculatePercent = (current, projected) => {
+    if (current === 0) return projected > 0 ? 100 : 0;
+    return ((projected - current) / Math.abs(current)) * 100;
   };
 
-  const projectedKDA = projected ? {
-    kills: parseFloat(projected.kda.avgKills),
-    deaths: parseFloat(projected.kda.avgDeaths),
-    assists: parseFloat(projected.kda.avgAssists),
-    kdaRatio: parseFloat(projected.kda.kdaRatio)
-  } : currentKDA;
+  return {
+    kills: calculatePercent(analytics.kda.avgKills, projectedStats.kda.avgKills),
+    deaths: calculatePercent(analytics.kda.avgDeaths, projectedStats.kda.avgDeaths),
+    assists: calculatePercent(analytics.kda.avgAssists, projectedStats.kda.avgAssists),
+    kdaRatio: calculatePercent(analytics.kda.kdaRatio, projectedStats.kda.kdaRatio),
+    winRate: calculatePercent(analytics.winRate.winRate, projectedStats.winRate.winRate),
+    gpm: analytics.farm && projectedStats.farm 
+      ? calculatePercent(analytics.farm.avgGPM, projectedStats.farm.avgGPM) 
+      : 0,
+    lastHits: analytics.farm && projectedStats.farm 
+      ? calculatePercent(analytics.farm.avgLastHits, projectedStats.farm.avgLastHits) 
+      : 0
+  };
+};
+
+/**
+ * Prepare chart data for Recharts
+ */
+export const prepareChartData = (analytics, projectedStats = null) => {
+  if (!analytics) {
+    console.warn('prepareChartData: analytics is null or undefined');
+    return null;
+  }
+
+  // Safe extraction with logging
+  const currentKills = parseFloat(analytics.kda?.avgKills || 0);
+  const currentDeaths = parseFloat(analytics.kda?.avgDeaths || 0);
+  const currentAssists = parseFloat(analytics.kda?.avgAssists || 0);
+  const currentKdaRatio = parseFloat(analytics.kda?.kdaRatio || 0);
+  const currentWinRate = parseFloat(analytics.winRate?.winRate || 0);
+  const currentGPM = analytics.farm ? parseFloat(analytics.farm.avgGPM || 0) : 0;
+  const currentLastHits = analytics.farm ? parseFloat(analytics.farm.avgLastHits || 0) : 0;
+
+  console.log('Chart Data Preparation:', {
+    currentKills,
+    currentDeaths,
+    currentAssists,
+    currentKdaRatio,
+    currentWinRate,
+    hasProjected: !!projectedStats
+  });
 
   // KDA Bar Chart Data
   const kdaBarData = [
     {
       metric: 'Kills',
-      Current: currentKDA.kills,
-      Projected: projectedKDA.kills
+      Current: currentKills,
+      Projected: projectedStats ? parseFloat(projectedStats.kda.avgKills) : currentKills
     },
     {
       metric: 'Deaths',
-      Current: currentKDA.deaths,
-      Projected: projectedKDA.deaths
+      Current: currentDeaths,
+      Projected: projectedStats ? parseFloat(projectedStats.kda.avgDeaths) : currentDeaths
     },
     {
       metric: 'Assists',
-      Current: currentKDA.assists,
-      Projected: projectedKDA.assists
+      Current: currentAssists,
+      Projected: projectedStats ? parseFloat(projectedStats.kda.avgAssists) : currentAssists
     }
+  ];
+
+  // KDA Ratio Trend
+  const kdaRatioData = [
+    { stage: 'Current', value: currentKdaRatio },
+    { stage: 'Projected', value: projectedStats ? parseFloat(projectedStats.kda.kdaRatio) : currentKdaRatio }
   ];
 
   // Win Rate Data
   const winRateData = [
     {
       metric: 'Win Rate',
-      Current: parseFloat(analytics.winRate.winRate),
-      Projected: projected ? parseFloat(projected.winRate.winRate) : parseFloat(analytics.winRate.winRate)
+      Current: currentWinRate,
+      Projected: projectedStats ? parseFloat(projectedStats.winRate.winRate) : currentWinRate
     }
   ];
 
-  // KDA Ratio Line Data (for trend visualization)
-  const kdaRatioData = [
-    { stage: 'Current', value: currentKDA.kdaRatio },
-    { stage: 'Projected', value: projectedKDA.kdaRatio }
-  ];
+  // Farm Data
+  let farmData = null;
+  if (analytics.farm) {
+    farmData = [
+      {
+        metric: 'GPM',
+        Current: currentGPM,
+        Projected: projectedStats?.farm ? parseFloat(projectedStats.farm.avgGPM) : currentGPM
+      },
+      {
+        metric: 'Last Hits',
+        Current: currentLastHits,
+        Projected: projectedStats?.farm ? parseFloat(projectedStats.farm.avgLastHits) : currentLastHits
+      }
+    ];
+  }
 
-  // Farm Data (if available)
-  const farmData = analytics.farm && projected?.farm ? [
-    {
-      metric: 'GPM',
-      Current: analytics.farm.avgGPM,
-      Projected: projected.farm.avgGPM
-    },
-    {
-      metric: 'Last Hits',
-      Current: analytics.farm.avgLastHits,
-      Projected: projected.farm.avgLastHits
-    }
-  ] : null;
-
-  return {
-    kdaBarData,
-    winRateData,
-    kdaRatioData,
-    farmData
-  };
+  const result = { kdaBarData, kdaRatioData, winRateData, farmData };
+  console.log('Prepared chart data:', result);
+  return result;
 };
 
 /**
- * Generate summary text for improvements
- * @param {Object} improvements - Improvement percentages
- * @returns {Array} Array of improvement summary objects
+ * Generate improvement summary
  */
-export const generateImprovementSummary = (improvements) => {
-  if (!improvements) return [];
+export const generateImprovementSummary = (improvementPercentages) => {
+  if (!improvementPercentages) return [];
 
   const summary = [];
 
-  if (improvements.kdaRatio) {
-    const change = parseFloat(improvements.kdaRatio);
+  // KDA Ratio
+  if (Math.abs(improvementPercentages.kdaRatio) > 0.5) {
     summary.push({
       metric: 'KDA Ratio',
-      change: improvements.kdaRatio,
-      positive: change > 0,
-      icon: change > 0 ? '📈' : '📉'
+      change: improvementPercentages.kdaRatio.toFixed(1),
+      positive: improvementPercentages.kdaRatio > 0,
+      icon: improvementPercentages.kdaRatio > 0 ? '📈' : '📉'
     });
   }
 
-  if (improvements.avgDeaths) {
-    const change = parseFloat(improvements.avgDeaths);
-    // For deaths, negative is good
+  // Deaths (negative is good)
+  if (Math.abs(improvementPercentages.deaths) > 0.5) {
     summary.push({
-      metric: 'Avg Deaths',
-      change: improvements.avgDeaths,
-      positive: change < 0,
-      icon: change < 0 ? '✅' : '⚠️'
+      metric: 'Deaths',
+      change: improvementPercentages.deaths.toFixed(1),
+      positive: improvementPercentages.deaths < 0,
+      icon: improvementPercentages.deaths < 0 ? '✅' : '⚠️'
     });
   }
 
-  if (improvements.winRate) {
-    const change = parseFloat(improvements.winRate);
+  // Win Rate
+  if (Math.abs(improvementPercentages.winRate) > 0.5) {
     summary.push({
       metric: 'Win Rate',
-      change: improvements.winRate,
-      positive: change > 0,
-      icon: change > 0 ? '🎯' : '📊'
+      change: improvementPercentages.winRate.toFixed(1),
+      positive: improvementPercentages.winRate > 0,
+      icon: improvementPercentages.winRate > 0 ? '🎯' : '📉'
     });
   }
 
-  if (improvements.avgGPM) {
-    const change = parseFloat(improvements.avgGPM);
+  // GPM
+  if (Math.abs(improvementPercentages.gpm) > 0.5) {
     summary.push({
       metric: 'GPM',
-      change: improvements.avgGPM,
-      positive: change > 0,
-      icon: change > 0 ? '💰' : '📊'
+      change: improvementPercentages.gpm.toFixed(1),
+      positive: improvementPercentages.gpm > 0,
+      icon: improvementPercentages.gpm > 0 ? '💰' : '📉'
     });
   }
 

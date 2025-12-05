@@ -10,6 +10,7 @@ import {
   generateImprovementSummary
 } from '../utils/projectionCalculator';
 import './DynamicRecommendations.css';
+import ChartDebugger from '../components/ChartDebugger';
 
 const DynamicRecommendations = () => {
   const { accountId } = useParams();
@@ -50,9 +51,16 @@ const DynamicRecommendations = () => {
     return calculateImprovementPercentages(analytics, projectedStats);
   }, [analytics, projectedStats]);
 
+
   const chartData = useMemo(() => {
     if (!analytics) return null;
-    return prepareChartData(analytics, projectedStats);
+    const data = prepareChartData(analytics, projectedStats);
+    console.log('=== CHART DATA DEBUG ===');
+    console.log('Analytics:', analytics);
+    console.log('Projected Stats:', projectedStats);
+    console.log('Chart Data:', data);
+    console.log('Has Projected:', appliedRecommendationObjects.length > 0);
+    return data;
   }, [analytics, projectedStats]);
 
   const improvementSummary = useMemo(() => {
@@ -63,6 +71,7 @@ const DynamicRecommendations = () => {
   if (loading) {
     return (
       <div className="recommendations-page">
+
         <div className="loading-state">
           <div className="spinner"></div>
           <h2>Analyzing Player Performance...</h2>
@@ -355,6 +364,13 @@ const DynamicRecommendations = () => {
           </div>
         </div>
       )}
+      <ChartDebugger
+        analytics={analytics}
+        projectedStats={projectedStats}
+        chartData={chartData}
+        appliedRecommendations={appliedRecommendationObjects}
+        hasProjected={appliedRecommendationObjects.length > 0}
+      />
     </div>
   );
 };
