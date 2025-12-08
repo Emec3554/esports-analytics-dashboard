@@ -363,16 +363,6 @@ const DynamicRecommendations = () => {
           </div>
         </div>
       )}
-<<<<<<< Updated upstream
-      {/* <ChartDebugger
-        analytics={analytics}
-        projectedStats={projectedStats}
-        chartData={chartData}
-        appliedRecommendations={appliedRecommendationObjects}
-        hasProjected={appliedRecommendationObjects.length > 0}
-      /> */}
-=======
->>>>>>> Stashed changes
     </div>
   );
 };

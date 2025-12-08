@@ -101,9 +101,9 @@ const PerformanceComparison = ({ chartData, improvements, hasProjected }) => {
                 iconType="square"
                 iconSize={14}
               />
-              <Bar 
-                dataKey="Current" 
-                fill="#475569" 
+              <Bar
+                dataKey="Current"
+                fill="#ee0a0aff"
                 radius={[4, 4, 0, 0]}
                 name="Current Stats"
               />
@@ -114,7 +114,6 @@ const PerformanceComparison = ({ chartData, improvements, hasProjected }) => {
           </p>
         </div>
 
-<<<<<<< Updated upstream
         {/* Projected Chart */}
         <div className={`chart-box projected ${hasProjected ? 'active' : 'inactive'}`}>
           <h2 className="chart-title">
@@ -140,12 +139,12 @@ const PerformanceComparison = ({ chartData, improvements, hasProjected }) => {
               />
               {hasProjected ? (
                 <>
-                  <Bar 
-                    dataKey="Current" 
-                    fill="#94a3b8" 
+                  <Bar
+                    dataKey="Current"
+                    fill="#f10909ff"
                     radius={[4, 4, 0, 0]}
                     name="Before"
-                    opacity={0.5}
+                    /*opacity={0.5}*/
                   />
                   <Bar 
                     dataKey="Projected" 
@@ -155,9 +154,9 @@ const PerformanceComparison = ({ chartData, improvements, hasProjected }) => {
                   />
                 </>
               ) : (
-                <Bar 
-                  dataKey="Current" 
-                  fill="#cbd5e1" 
+                <Bar
+                  dataKey="Current"
+                  fill="#ef4444"
                   radius={[4, 4, 0, 0]}
                   name="No Changes Yet"
                   opacity={0.3}
@@ -171,143 +170,6 @@ const PerformanceComparison = ({ chartData, improvements, hasProjected }) => {
               : 'Apply recommendations above to see potential improvements'}
           </p>
         </div>
-=======
-        {/* KDA Comparison */}
-        {kdaBarData?.length > 0 && (
-          <div className="chart-container">
-            <h3>KDA Comparison</h3>
-
-            <ResponsiveContainer width="100%" height={500}>
-              <BarChart
-                data={kdaBarData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-                <XAxis dataKey="metric" tick={{ fontSize: 14, fill: '#374151' }} />
-                <YAxis
-                  domain={[0, 16]}
-                  ticks={[0, 2, 4, 6, 8, 10, 12, 14, 16]}
-                  tick={{ fontSize: 14, fill: '#374151' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-
-                <Bar dataKey="Current" fill="#475569" radius={[8, 8, 0, 0]} maxBarSize={80} />
-
-                {hasProjected && (
-                  <Bar dataKey="Projected" fill="#d1d5db" radius={[8, 8, 0, 0]} maxBarSize={80} />
-                )}
-              </BarChart>
-            </ResponsiveContainer>
-
-            <p className="chart-description">
-              Lower deaths and higher kills/assists indicate better performance
-            </p>
-          </div>
-        )}
-
-        {/* KDA Ratio Trend */}
-        {kdaRatioData?.length > 0 && (
-          <div className="chart-container">
-            <h3>KDA Ratio Trend</h3>
-
-            <ResponsiveContainer width="100%" height={500}>
-              <LineChart data={kdaRatioData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-                <XAxis dataKey="stage" tick={{ fontSize: 14, fill: '#374151' }} />
-                <YAxis
-                  domain={[3, 'auto']}
-                  tick={{ fontSize: 14, fill: '#374151' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke={hasProjected ? '#059669' : '#475569'}
-                  strokeWidth={4}
-                  dot={{
-                    r: 8,
-                    fill: hasProjected ? '#059669' : '#475569',
-                    stroke: '#fff',
-                    strokeWidth: 2
-                  }}
-                  activeDot={{ r: 10, strokeWidth: 3 }}
-                  name="KDA Ratio"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-
-            <p className="chart-description">
-              KDA Ratio = (Kills + Assists) / Deaths. Higher is better!
-            </p>
-          </div>
-        )}
-
-        {/* Win Rate Impact */}
-        {winRateData?.length > 0 && (
-          <div className="chart-container">
-            <h3>Win Rate Impact</h3>
-
-            <ResponsiveContainer width="100%" height={500}>
-              <BarChart
-                data={winRateData}
-                layout="vertical"
-                margin={{ top: 20, right: 80, left: 80, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-                <XAxis type="number" domain={[0, 100]} />
-                <YAxis type="category" dataKey="metric" tick={{ fontSize: 14, fill: '#374151' }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-
-                <Bar dataKey="Current" radius={[0, 8, 8, 0]} maxBarSize={60}>
-                  {winRateData.map((_, index) => (
-                    <Cell key={index} fill="#475569" />
-                  ))}
-                </Bar>
-
-                {hasProjected && (
-                  <Bar dataKey="Projected" radius={[0, 8, 8, 0]} maxBarSize={60}>
-                    {winRateData.map((_, index) => (
-                      <Cell key={index} fill="#059669" />
-                    ))}
-                  </Bar>
-                )}
-              </BarChart>
-            </ResponsiveContainer>
-
-            <p className="chart-description">
-              Target: 50%+ win rate for consistent improvement
-            </p>
-          </div>
-        )}
-
-        {/* Farm Efficiency */}
-        {farmData?.length > 0 && (
-          <div className="chart-container">
-            <h3>Farm Efficiency</h3>
-
-            <ResponsiveContainer width="100%" height={500}>
-              <LineChart data={farmData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
-                <XAxis dataKey="stage" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-
-                <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={4} />
-              </LineChart>
-            </ResponsiveContainer>
-
-            <p className="chart-description">
-              More consistent farming leads to stronger mid-game power spikes
-            </p>
-          </div>
-        )}
-
->>>>>>> Stashed changes
       </div>
 
       {/* Legend */}
