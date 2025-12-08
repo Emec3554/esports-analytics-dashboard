@@ -10,7 +10,6 @@ import {
   generateImprovementSummary
 } from '../utils/projectionCalculator';
 import './DynamicRecommendations.css';
-import ChartDebugger from '../components/ChartDebugger';
 
 const DynamicRecommendations = () => {
   const { accountId } = useParams();
@@ -364,6 +363,7 @@ const DynamicRecommendations = () => {
           </div>
         </div>
       )}
+<<<<<<< Updated upstream
       {/* <ChartDebugger
         analytics={analytics}
         projectedStats={projectedStats}
@@ -371,6 +371,8 @@ const DynamicRecommendations = () => {
         appliedRecommendations={appliedRecommendationObjects}
         hasProjected={appliedRecommendationObjects.length > 0}
       /> */}
+=======
+>>>>>>> Stashed changes
     </div>
   );
 };

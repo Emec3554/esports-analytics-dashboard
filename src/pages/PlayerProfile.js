@@ -187,12 +187,12 @@ const PlayerProfile = () => {
         </div>
       </div>
 
-      {/* AI Recommendations Button */}
+      {/*  Recommendations Button */}
       <div className="recommendations-prompt">
         <div className="prompt-content">
-          <div className="prompt-icon">🤖</div>
+          <div className="prompt-icon"></div>
           <div className="prompt-text">
-            <h3>Get AI-Powered Recommendations</h3>
+            <h3>Get Real-Time Recommendations</h3>
             <p>Analyze this player's performance and receive personalized improvement suggestions based on their recent matches.</p>
           </div>
         </div>
