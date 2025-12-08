@@ -364,13 +364,13 @@ const DynamicRecommendations = () => {
           </div>
         </div>
       )}
-      <ChartDebugger
+      {/* <ChartDebugger
         analytics={analytics}
         projectedStats={projectedStats}
         chartData={chartData}
         appliedRecommendations={appliedRecommendationObjects}
         hasProjected={appliedRecommendationObjects.length > 0}
-      />
+      /> */}
     </div>
   );
 };
