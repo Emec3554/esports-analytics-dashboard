@@ -30,21 +30,24 @@ export const calculateProjectedStats = (analytics, appliedRecommendations) => {
     } : null
   };
 
+  // Track total death reduction for proportional kill increase
+  let totalDeathReduction = 0;
+
   // Apply each recommendation's expected impact
   appliedRecommendations.forEach(rec => {
     if (!rec.expectedImpact) return;
 
     const impact = rec.expectedImpact;
 
-    // Apply KDA impacts
+    // Track death reductions (negative values)
+    if (impact.deaths && impact.deaths < 0) {
+      totalDeathReduction += Math.abs(impact.deaths);
+    }
+
+    // Apply direct impacts
     if (impact.kills) projected.kda.avgKills += impact.kills;
     if (impact.deaths) projected.kda.avgDeaths += impact.deaths; // Usually negative
     if (impact.assists) projected.kda.avgAssists += impact.assists;
-
-    // Recalculate KDA ratio
-    if (projected.kda.avgDeaths > 0) {
-      projected.kda.kdaRatio = (projected.kda.avgKills + projected.kda.avgAssists) / projected.kda.avgDeaths;
-    }
 
     // Apply win rate impact
     if (impact.winRate) {
@@ -59,6 +62,25 @@ export const calculateProjectedStats = (analytics, appliedRecommendations) => {
     }
   });
 
+  // PROPORTIONAL INCREASE: Add kills based on death reduction
+  // Logic: For every 2 deaths reduced, add 1 kill (50% conversion rate)
+  // This represents better positioning = more survival = more kill opportunities
+  const proportionalKillIncrease = totalDeathReduction * 0.5;
+  projected.kda.avgKills += proportionalKillIncrease;
+
+  // Also add proportional assists (20% conversion)
+  // Better survival = more fight participation = more assists
+  const proportionalAssistIncrease = totalDeathReduction * 0.2;
+  projected.kda.avgAssists += proportionalAssistIncrease;
+
+  // Ensure deaths don't go below reasonable minimum (0.5)
+  projected.kda.avgDeaths = Math.max(0.5, projected.kda.avgDeaths);
+
+  // Recalculate KDA ratio with new values
+  if (projected.kda.avgDeaths > 0) {
+    projected.kda.kdaRatio = (projected.kda.avgKills + projected.kda.avgAssists) / projected.kda.avgDeaths;
+  }
+
   // Round values for display
   projected.kda.avgKills = parseFloat(projected.kda.avgKills.toFixed(1));
   projected.kda.avgDeaths = parseFloat(projected.kda.avgDeaths.toFixed(1));
@@ -70,6 +92,16 @@ export const calculateProjectedStats = (analytics, appliedRecommendations) => {
     projected.farm.avgGPM = Math.round(projected.farm.avgGPM);
     projected.farm.avgLastHits = Math.round(projected.farm.avgLastHits);
   }
+
+  console.log('📊 Projection Calculation:', {
+    deathReduction: totalDeathReduction,
+    proportionalKillIncrease: proportionalKillIncrease.toFixed(1),
+    proportionalAssistIncrease: proportionalAssistIncrease.toFixed(1),
+    finalKills: projected.kda.avgKills,
+    finalDeaths: projected.kda.avgDeaths,
+    finalAssists: projected.kda.avgAssists,
+    finalKDA: projected.kda.kdaRatio
+  });
 
   return projected;
 };
@@ -201,13 +233,23 @@ export const generateImprovementSummary = (improvementPercentages) => {
     });
   }
 
+  // Kills (positive increase)
+  if (Math.abs(improvementPercentages.kills) > 0.5) {
+    summary.push({
+      metric: 'Kills',
+      change: improvementPercentages.kills.toFixed(1),
+      positive: improvementPercentages.kills > 0,
+      icon: improvementPercentages.kills > 0 ? '⚔️' : '📉'
+    });
+  }
+
   // Deaths (negative is good)
   if (Math.abs(improvementPercentages.deaths) > 0.5) {
     summary.push({
       metric: 'Deaths',
       change: improvementPercentages.deaths.toFixed(1),
-      positive: improvementPercentages.deaths < 0,
-      icon: improvementPercentages.deaths < 0 ? '✅' : '⚠️'
+      positive: improvementPercentages.deaths < 0, // Lower deaths is positive
+      icon: improvementPercentages.deaths < 0 ? '🛡️' : '⚠️'
     });
   }
 
